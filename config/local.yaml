@@ -1,0 +1,6 @@
+env: "local" # Окружение - local, dev, prod
+storage: "./storage/storage.db" # Файл, в котором хранится БД
+http_server: # конфигурация http-сервера
+  address: "localhost:8080"
+  timeout: 4s # Время на обработку запроса
+  idle_timeout: 60s # Время сессии
