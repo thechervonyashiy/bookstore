@@ -1,24 +1,34 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/thechervonyashiy/bookstore/internal/handlers"
+	"github.com/thechervonyashiy/bookstore/internal/routes"
+	"github.com/thechervonyashiy/bookstore/internal/services"
+	"github.com/thechervonyashiy/bookstore/storage/sqlite"
 )
 
 func main() {
-	router := chi.NewRouter()
+	// init db
+	storagePath := "./storage.db"
+	repo, err := sqlite.New(storagePath)
+	if err != nil {
+		log.Fatal("failed to init storage ", err)
+	}
 
-	router.Route("/books", func(r chi.Router) {
-		r.Get("/", handlers.GetAllBooks)
-		r.Post("/", handlers.CreateBook)
+	bookService := services.NewBookService(repo)
 
-		r.Route("/{bookID}", func(r chi.Router) {
-			r.Get("/", handlers.GetBookByID)
-			r.Put("/", handlers.UpdateBook)
-			r.Delete("/", handlers.DeleteBook)
-		})
-	})
+	handler := &handlers.Handler{
+		Service: bookService,
+	}
 
-	http.ListenAndServe(":8080", router)
+	router := routes.SetupRoutes(handler)
+
+	port := ":8080"
+	log.Printf("Starting server on %s", port)
+	if err := http.ListenAndServe(port, router); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }
